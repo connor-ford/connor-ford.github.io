@@ -1,6 +1,6 @@
 ---
 title:  "Updating My Site With Chirpy"
-date:   2021-05-27 10:00:00 -0500 # TODO
+date:   2021-05-27 18:45:00 -0500
 categories: [Computers, Web]
 tags: [website]
 ---
