@@ -1,8 +1,8 @@
 ---
-layout: post
 title:  "Hello World!"
 date:   2021-05-20 10:00:00 -0500
-categories: update
+categories: [Computers, Web]
+tags: [update]
 ---
 Hello world!
 
