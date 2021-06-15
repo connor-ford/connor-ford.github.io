@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US"><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://connor-ford.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://connor-ford.github.io/" rel="alternate" type="text/html" hreflang="en-US" /><updated>2021-06-15T15:02:24-05:00</updated><id>https://connor-ford.github.io/feed.xml</id><title type="html">Connor Ford</title><subtitle>My personal portfolio website.</subtitle><entry><title type="html">Making Myself Unmutable in Discord</title><link href="https://connor-ford.github.io/posts/discord-bot-unmutable/" rel="alternate" type="text/html" title="Making Myself Unmutable in Discord" /><published>2021-06-11T11:41:00-05:00</published><updated>2021-06-11T11:41:00-05:00</updated><id>https://connor-ford.github.io/posts/discord-bot-unmutable</id><content type="html" xml:base="https://connor-ford.github.io/posts/discord-bot-unmutable/">&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;/h2&gt;
+
+&lt;p&gt;My friends call it a “misuse of my Discord bot-creating powers”. I like to think of it as a fun learning experience.&lt;/p&gt;
+
+&lt;p&gt;If you aren’t familiar with Discord, it’s a voice and text chat platform designed for creating communities. My friends and I use it for messaging each other and hanging out while playing games. One of the core features of Discord is its community-created bots. There’s a bot for practically anything you can think of: bots that play music in a voice chat, bots for getting info from sites like Wikipedia, bots that’ll translate messages into another language, even bots that’ll play text-based games!&lt;/p&gt;
+
+&lt;p&gt;The Discord bot API has been packaged up for use in a slew of langauges, including Java, Javascript, and my personal favorite, Python. For a while now, I’ve been working on a &lt;em&gt;&lt;a href=&quot;https://github.com/connor-ford/random-discord-bot&quot;&gt;kitchen-sink Discord bot&lt;/a&gt;&lt;/em&gt;, chock full of random features. Currently, it can:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Generate an information page on a specific breed of cat,&lt;/li&gt;
+  &lt;li&gt;Get an image of a specific breed of cat or dog,&lt;/li&gt;
+  &lt;li&gt;Get a joke, with options to specify a category and the type of joke,&lt;/li&gt;
+  &lt;li&gt;Respond to keywords with responses, with commands to add, list, and delete keyword/response pairs,&lt;/li&gt;
+  &lt;li&gt;Generate an information page on a specified Minecraft user, or get their Minecraft skin, with an option to supply either their username or UUID for identification,&lt;/li&gt;
+  &lt;li&gt;Create and return a hue-shifted worm-on-a-string, because why not, and&lt;/li&gt;
+  &lt;li&gt;Flip a specified amount of coins, roll a specified amount of specified-sided dice, or just generate a bunch of random numbers.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Like I said, kitchen-sink. Most of these features were added as a proof of concept, to demonstrate functionality, and today’s feature is no exception. When my friends and I hang out in a Discord server, we mess with each other every now and then: moving someone to another voice channel, server deafening them so nobody else can hear them, or my personal favorite: server muting them so they can’t talk. It’s always fun to see how long it takes someone to notice before they’re muted. The problem is, &lt;em&gt;I&lt;/em&gt; get messed with too, which is completely unfair. Only &lt;em&gt;I’m&lt;/em&gt; allowed to mess with other people, after all. So I set out to give my bot a little extra functionality to make sure that I stay unmuted, undeafened, and in the correct channel.&lt;/p&gt;
+
+&lt;h2 id=&quot;staying-unmuted&quot;&gt;Staying Unmuted&lt;/h2&gt;
+
+&lt;p&gt;I had already built a similar system for handling keywords, so I didn’t have to start from scratch. I created two commands to start out with: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock mute&lt;/code&gt;, to add a mute lock to a specified user (whether it be locked as muted or unmuted), and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock remove&lt;/code&gt;, to remove all locks from a user. I had a bit of trouble with the data structure, as I needed to track each user &lt;em&gt;in&lt;/em&gt; each guild, as opposed to each user &lt;em&gt;or&lt;/em&gt; each guild. In the end, I decided to use a three-dimensional dictionary, with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;server ID&lt;/code&gt;, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;user ID&lt;/code&gt;, and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;lock type&lt;/code&gt; serving as keys. I also used this structure when saving to and loading from server data files, which took a bit to implement, but once I got the ball rolling it was easy to tack on more features.&lt;/p&gt;
+
+&lt;p&gt;For the muting part itself, I had to create a new listener for a change in voice state. When this listener is triggered, if any changes in the voice state are detected that conflict with a lock (someone trying to mute me, for example), the bot edits the locked user’s voice status to make sure that the lock stays in place. This feature took a long time to get right, but once it did, it worked like a charm.&lt;/p&gt;
+
+&lt;h2 id=&quot;staying-undeafened&quot;&gt;Staying Undeafened&lt;/h2&gt;
+
+&lt;p&gt;Implementing this easy, now that I had the foundation in place; all I needed to do was create a new command, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock deafen&lt;/code&gt;, that would lock a user as deafened or undeafened, and add the deafened flag to the listener. &lt;strong&gt;Bob’s your uncle&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;staying-in-the-correct-channel&quot;&gt;Staying in the Correct Channel&lt;/h2&gt;
+
+&lt;p&gt;This one was a little more complex. The other two stored boolean values to determine what state they should be locked in, but I needed a way to pass and store a voice channel from the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock channel&lt;/code&gt; command. Fortunately, every channel on Discord has an associated &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ID&lt;/code&gt;, so I decided to use that. However, this resulted in a bit of hair pulling: I had to convert the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ID&lt;/code&gt; (an integer) into string format in order to pass it to the function that changes a user’s channel, which is easy enough to implement, but I forgot to convert it in a couple of places, resulting in the listener logic getting screwed up, and determining that the channel needs to be changed &lt;em&gt;every single time it gets updated&lt;/em&gt;. After getting yelled at by the Discord API for exceeding the rate limit by a couple hundred requests, I found the datatype error and fixed it, and all was right with the world.&lt;/p&gt;
+
+&lt;h2 id=&quot;showtime&quot;&gt;Showtime&lt;/h2&gt;
+
+&lt;p&gt;Once I was happy with my result, I decided to test it in action. I locked myself in the main channel as unmuted and undeafened. It didn’t take long for my friends to notice my “immunity” whenever I got muted or moved. After a few minutes of this, I had an epiphany: if I could lock myself as unmuted, I could also lock my friends as muted. This resulted in pure chaos, as you could imagine.&lt;/p&gt;
+
+&lt;h2 id=&quot;flaws&quot;&gt;Flaws&lt;/h2&gt;
+
+&lt;p&gt;Unfortunately, my implementation of this came with a few flaws.&lt;/p&gt;
+
+&lt;p&gt;While I can prevent myself from getting muted, deafened, and moved to another channel, I can’t prevent myself from getting disconnected from the call. I could potentially create a client interface that automatically connects me when I get disconnected, but that’s &lt;em&gt;kind of&lt;/em&gt; against Discord’s Terms of Service. &lt;strong&gt;Darn&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;Another flaw resides in the fact that every time my bot changes a user’s status, it shows up in the Audit Log. This isn’t good for when someone is trying to be sneaky, but again, not much I can do about that without breaking Discord’s ToS. &lt;strong&gt;Double darn&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;p&gt;My friends found a loophole; instead of switching me to another channel, they switched themselves, meaning that I would have to unlock myself in order to go to the new channel. This got me thinking about user-specific user locking, where if somebody else tried to move me to another channel it’d be reverted, but if I moved myself the bot would allow it. This would most likely have to rely on the Audit Log, which is a layer of complexity that I think I should save for another time.&lt;/p&gt;
+
+&lt;p&gt;I felt like some work could be done on removing locks. I added some functionality to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock remove&lt;/code&gt; command, which gave the option of removing the mute lock, deafen lock, channel lock, or all locks on a user. I also added a new command, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/lock list&lt;/code&gt;, that gives a list of all locked users in the server, as well as which locks they have.&lt;/p&gt;
+
+&lt;p&gt;There’s bound to be some bugs with this implementation, such as problems with listing a user’s locks if they have since left the server. While addressing issues such as this are important, I think I will leave it for another time.&lt;/p&gt;
+
+&lt;p&gt;Finally, there is the issue of security; currently, any user can lock and unlock any other user. I plan to address this down the road, when I implement permission scopes across all of the bot’s commands. For now, I suppose there’ll just have to be some chaos.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Well, this was a fun adventure! I’ve been meaning to tinker with the voice side of bot creation, and while this isn’t that big of a first step into the voice side, it’s still a first step. I also got to mess with my friends! For my next Discord bot feature, I think I’ll implement something more ambitious, like a TTS command that joins the channel you’re in and says what you entered back to you. That sounds interesting to me.&lt;/p&gt;
+
+&lt;p&gt;Until next time,&lt;br /&gt;
+- CF&lt;/p&gt;</content><author><name></name></author><category term="Computers" /><category term="Bots" /><category term="python" /><category term="random-discord-bot" /><summary type="html">Intro</summary></entry><entry><title type="html">Updating My Site With Chirpy</title><link href="https://connor-ford.github.io/posts/site-update/" rel="alternate" type="text/html" title="Updating My Site With Chirpy" /><published>2021-05-27T18:45:00-05:00</published><updated>2021-05-27T18:45:00-05:00</updated><id>https://connor-ford.github.io/posts/site-update</id><content type="html" xml:base="https://connor-ford.github.io/posts/site-update/">&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;/h2&gt;
+
+&lt;p&gt;Howdy!&lt;/p&gt;
+
+&lt;p&gt;Seeing as this site was a little bland, I’ve decided to update it with a new theme and some new tabs. I’ve been putting off this update for a decent bit, but once I got around to seeing it through I found it actually quite refreshing.&lt;/p&gt;
+
+&lt;h2 id=&quot;theme&quot;&gt;Theme&lt;/h2&gt;
+
+&lt;p&gt;For my site, I decided to use the Chirpy theme. It’s minimal, responsive, and reminds me of the theme that GitHub uses, which I quite like. It boasts a slew of features, including syntax highlighting, Google Analytics, a table of contents, a search bar, pinned posts, and support for mathematical expressions and Mermaid diagrams. It also looks brilliant out of the box, which is a very big plus for me. I’m not too good at front-end development as it is, so the less mucking about I have to do in a theme, the better. Overall, this theme seems perfect for a feature-rich website.&lt;/p&gt;
+
+&lt;p&gt;Here are some links for Chirpy, if you’re interested:&lt;br /&gt;
+&lt;a href=&quot;https://github.com/cotes2020/jekyll-theme-chirpy/&quot;&gt;Main repo&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&quot;https://chirpy.cotes.info&quot;&gt;Demo site&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, installing Chirpy took me a bit of time, as I ran into a version conflict: the Chirpy gem, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;jekyll-themes-chirpy&lt;/code&gt;, needed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll 4.1&lt;/code&gt;, but the gem required for GitHub Pages publishing system to work, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;github-pages&lt;/code&gt;, needed &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Jekyll 3.9&lt;/code&gt;. As it turns out, GitHub Pages was still using a pretty outdated version of Jekyll. I had two options for resolving this: replace Chirpy with another theme, or replace GitHub Pages with another publishing system.&lt;/p&gt;
+
+&lt;h3 id=&quot;new-theme&quot;&gt;New theme?&lt;/h3&gt;
+
+&lt;p&gt;I found a few sources for themes that are compatible with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;github-pages&lt;/code&gt; out of the box. The first one was GitHub Pages’ own &lt;a href=&quot;https://pages.github.com/themes/&quot;&gt;Supported themes&lt;/a&gt; page, which boasted a decent collection of themes that natively worked with GitHub Pages. However, none of the themes looked as nice as Chirpy out of the box (in my opinion), and were lacking in overall features. There were also some themes available from &lt;a href=&quot;https://jekyllthemes.io/github-pages-themes&quot;&gt;Jekyll Themes&lt;/a&gt;, but the free themes left a lot to be desired, and the paid themes looked nice enough, but were out of my price range. As much as I value this website, I’m not looking to spend $50 on a theme for it!&lt;/p&gt;
+
+&lt;h3 id=&quot;github-actions&quot;&gt;GitHub Actions&lt;/h3&gt;
+
+&lt;p&gt;Since I couldn’t find a compatible theme that I liked more than Chirpy, I decided to rip out the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;github-pages&lt;/code&gt; gem and find an alternative way to publish my site. Fortunately, I found a very lovely &lt;a href=&quot;https://jekyllrb.com/docs/continuous-integration/github-actions/&quot;&gt;article&lt;/a&gt; on Jekyll’s main page that detailed how to publish a static website for GitHub Pages with the use of GitHub Actions. By using this method, I was able to use whatever version of Jekyll I wanted, thereby solving the version conflict. It took a bit of time to get working right, but in the end I got GitHub Actions to completely automate my entire publishing process, from pushing a commit to seeing the updated website. Once this was in place, installing Chirpy was a cakewalk. Very nice.&lt;/p&gt;
+
+&lt;h2 id=&quot;new-tabs&quot;&gt;New Tabs&lt;/h2&gt;
+
+&lt;p&gt;Seeing as this site was intended to be used as a personal portfolio, I might as well make it into one. For this, I’ve added some new tabs.&lt;/p&gt;
+
+&lt;h3 id=&quot;about&quot;&gt;About&lt;/h3&gt;
+
+&lt;p&gt;This tab just has some info on who I am, what I do, and what I’m interested in. It’s a little sparse at the moment, but I can always add to it down the road.&lt;/p&gt;
+
+&lt;h3 id=&quot;categories-tags-and-archives&quot;&gt;Categories, Tags, and Archives&lt;/h3&gt;
+
+&lt;p&gt;These tabs came with Chirpy to better organize my posts, and I decided to keep them. They didn’t need much tweaking, so I left them as-is and they seem to work just fine.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Well, this was quite the adventure into site building! I’ve gotten Chirpy to play nice with Jekyll, and set up a Github Actions system to publish my website. I also added a few new pages to my site, turning a sparse blogging website into a sparse portfolio/blogging website. I’d call that an improvement!&lt;/p&gt;
+
+&lt;p&gt;Ciao for now,&lt;br /&gt;
+- CF&lt;/p&gt;</content><author><name></name></author><category term="Computers" /><category term="Web" /><category term="website" /><summary type="html">Intro Howdy! Seeing as this site was a little bland, I’ve decided to update it with a new theme and some new tabs. I’ve been putting off this update for a decent bit, but once I got around to seeing it through I found it actually quite refreshing. Theme For my site, I decided to use the Chirpy theme. It’s minimal, responsive, and reminds me of the theme that GitHub uses, which I quite like. It boasts a slew of features, including syntax highlighting, Google Analytics, a table of contents, a search bar, pinned posts, and support for mathematical expressions and Mermaid diagrams. It also looks brilliant out of the box, which is a very big plus for me. I’m not too good at front-end development as it is, so the less mucking about I have to do in a theme, the better. Overall, this theme seems perfect for a feature-rich website. Here are some links for Chirpy, if you’re interested: Main repo Demo site Unfortunately, installing Chirpy took me a bit of time, as I ran into a version conflict: the Chirpy gem, jekyll-themes-chirpy, needed Jekyll 4.1, but the gem required for GitHub Pages publishing system to work, github-pages, needed Jekyll 3.9. As it turns out, GitHub Pages was still using a pretty outdated version of Jekyll. I had two options for resolving this: replace Chirpy with another theme, or replace GitHub Pages with another publishing system. New theme? I found a few sources for themes that are compatible with github-pages out of the box. The first one was GitHub Pages’ own Supported themes page, which boasted a decent collection of themes that natively worked with GitHub Pages. However, none of the themes looked as nice as Chirpy out of the box (in my opinion), and were lacking in overall features. There were also some themes available from Jekyll Themes, but the free themes left a lot to be desired, and the paid themes looked nice enough, but were out of my price range. As much as I value this website, I’m not looking to spend $50 on a theme for it! GitHub Actions Since I couldn’t find a compatible theme that I liked more than Chirpy, I decided to rip out the github-pages gem and find an alternative way to publish my site. Fortunately, I found a very lovely article on Jekyll’s main page that detailed how to publish a static website for GitHub Pages with the use of GitHub Actions. By using this method, I was able to use whatever version of Jekyll I wanted, thereby solving the version conflict. It took a bit of time to get working right, but in the end I got GitHub Actions to completely automate my entire publishing process, from pushing a commit to seeing the updated website. Once this was in place, installing Chirpy was a cakewalk. Very nice. New Tabs Seeing as this site was intended to be used as a personal portfolio, I might as well make it into one. For this, I’ve added some new tabs. About This tab just has some info on who I am, what I do, and what I’m interested in. It’s a little sparse at the moment, but I can always add to it down the road. Categories, Tags, and Archives These tabs came with Chirpy to better organize my posts, and I decided to keep them. They didn’t need much tweaking, so I left them as-is and they seem to work just fine. Conclusion Well, this was quite the adventure into site building! I’ve gotten Chirpy to play nice with Jekyll, and set up a Github Actions system to publish my website. I also added a few new pages to my site, turning a sparse blogging website into a sparse portfolio/blogging website. I’d call that an improvement! Ciao for now, - CF</summary></entry><entry><title type="html">Hello World!</title><link href="https://connor-ford.github.io/posts/hello-world/" rel="alternate" type="text/html" title="Hello World!" /><published>2021-05-20T10:00:00-05:00</published><updated>2021-05-20T10:00:00-05:00</updated><id>https://connor-ford.github.io/posts/hello-world</id><content type="html" xml:base="https://connor-ford.github.io/posts/hello-world/">&lt;p&gt;Hello world!&lt;/p&gt;
+
+&lt;p&gt;I’ll be using this site to give a little information about myself, as well as to show off projects that I’m working on. I’m a bit new to managing my own website, and as such I would greatly appreciate any comments or suggestions. You can find information to contact me in the bottom left corner of this page, displayed as icons.&lt;/p&gt;
+
+&lt;p&gt;Until next time!&lt;br /&gt;
+- CF&lt;/p&gt;</content><author><name></name></author><category term="Computers" /><category term="Web" /><category term="update" /><summary type="html">Hello world!</summary></entry></feed>
